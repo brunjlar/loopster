@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from loopster.capture.pty_capture import capture_command
+from loopster.capture.pipe_capture import capture_command
 
 
 def test_capture_echo_hello(tmp_path):

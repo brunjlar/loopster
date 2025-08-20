@@ -9,8 +9,6 @@ def test_load_and_merge_config_env_and_cli(tmp_path, monkeypatch):
         """
 provider = "gemini"
 tool = "gemini-cli"
-[capture]
-method = "pty"
 log_dir = "logs"
         """.strip()
     )
@@ -27,6 +25,4 @@ log_dir = "logs"
     assert isinstance(merged, LoopsterConfig)
     assert merged.provider == "codex"  # from CLI
     assert merged.tool == "codex-cli"  # from ENV
-    assert merged.capture_method == "pty"  # from file
     assert merged.log_dir == "/tmp/logs"  # from CLI
-

@@ -18,7 +18,6 @@ class LoopsterConfig:
     provider: Optional[str] = None
     tool: Optional[str] = None
     tool_config_path: Optional[str] = None
-    capture_method: str = "auto"  # auto|pty|script
     log_dir: Optional[str] = None
 
 
@@ -56,19 +55,11 @@ def merge_config(
         or get_env("LOOPSTER_TOOL_CONFIG_PATH")
         or file_cfg.get("tool_config_path")
     )
-    capture_method = (
-        cli.get("capture_method")
-        or get_env("LOOPSTER_CAPTURE_METHOD")
-        or file_cfg.get("capture", {}).get("method")
-        or "auto"
-    )
     log_dir = cli.get("log_dir") or get_env("LOOPSTER_LOG_DIR") or file_cfg.get("log_dir")
 
     return LoopsterConfig(
         provider=provider,
         tool=tool,
         tool_config_path=tool_config_path,
-        capture_method=capture_method,
         log_dir=log_dir,
     )
-
