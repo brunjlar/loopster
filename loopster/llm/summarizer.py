@@ -7,6 +7,8 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from .model_factory import get_chat_model
+
 
 @dataclass
 class LLMSelection:
@@ -40,17 +42,7 @@ class Summarizer:
             raise RuntimeError(
                 "No LLM provided. Specify `llm` or (`provider`, `model`)."
             )
-        provider = self._selection.provider.lower()
-        model = self._selection.model
-        if provider in {"openai", "chatgpt", "gpt"}:
-            from langchain_openai import ChatOpenAI
-
-            return ChatOpenAI(model=model)
-        if provider in {"google", "gemini"}:
-            from langchain_google_genai import ChatGoogleGenerativeAI
-
-            return ChatGoogleGenerativeAI(model=model)
-        raise ValueError(f"Unsupported provider: {self._selection.provider}")
+        return get_chat_model(self._selection.provider, self._selection.model)
 
     def _build_chain(self, output_format: str):
         instructions = (
@@ -76,4 +68,3 @@ class Summarizer:
     def summarize_text(self, log_text: str, *, output_format: str = "text") -> str:
         chain = self._build_chain(output_format)
         return chain.invoke({"log": log_text, "output_format": output_format})
-

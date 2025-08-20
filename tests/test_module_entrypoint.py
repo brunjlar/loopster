@@ -16,5 +16,4 @@ def test_python_m_loopster_help_exits_zero_and_shows_commands():
   assert "capture" in proc.stdout
   assert "analyze" in proc.stdout
   assert "summarize" in proc.stdout
-  assert "config" in proc.stdout
-
+  assert "models" in proc.stdout

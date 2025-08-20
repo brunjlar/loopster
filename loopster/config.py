@@ -16,6 +16,7 @@ except Exception:  # pragma: no cover
 @dataclass
 class LoopsterConfig:
     provider: Optional[str] = None
+    model: Optional[str] = None
     tool: Optional[str] = None
     tool_config_path: Optional[str] = None
     log_dir: Optional[str] = None
@@ -49,6 +50,7 @@ def merge_config(
         return env.get(name)
 
     provider = cli.get("provider") or get_env("LOOPSTER_PROVIDER") or file_cfg.get("provider")
+    model = cli.get("model") or get_env("LOOPSTER_MODEL") or file_cfg.get("model")
     tool = cli.get("tool") or get_env("LOOPSTER_TOOL") or file_cfg.get("tool")
     tool_config_path = (
         cli.get("tool_config_path")
@@ -59,6 +61,7 @@ def merge_config(
 
     return LoopsterConfig(
         provider=provider,
+        model=model,
         tool=tool,
         tool_config_path=tool_config_path,
         log_dir=log_dir,

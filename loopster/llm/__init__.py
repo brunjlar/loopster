@@ -1,4 +1,4 @@
-__all__ = ["Summarizer"]
+__all__ = ["Summarizer", "LLMClient"]
 
 from .summarizer import Summarizer
-
+from .client import LLMClient

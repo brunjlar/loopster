@@ -1,4 +1,4 @@
 pytest
-langchain-core>=0.3.0
-langchain-openai>=0.2.0
-langchain-google-genai>=2.0.0
+langchain-core==0.3.74
+langchain-openai==0.3.30
+langchain-google-genai==2.1.9

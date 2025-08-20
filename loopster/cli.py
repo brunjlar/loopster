@@ -78,13 +78,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--format", type=str, choices=["markdown", "text", "json"], default="text"
     )
     sum_p.add_argument("--out", type=str, default=None)
+    sum_p.add_argument("--model", type=str, default=None)
 
-    # config
-    cfg_p = subparsers.add_parser("config", help="Show/validate effective config")
-    cfg_p.add_argument("--show", action="store_true")
-    cfg_p.add_argument("--validate", action="store_true")
-    cfg_p.add_argument("--set", action="append", default=[])
-    cfg_p.add_argument("--save", type=str, default=None)
+    # models listing
+    models_p = subparsers.add_parser("models", help="List supported model names")
+
+    # (config subcommand removed)
 
     # sanitize
     san_p = subparsers.add_parser(
@@ -195,20 +194,52 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[loopster] summarize: failed to read log: {e}")
             return 2
 
-        # Build summarizer using env-based defaults unless explicitly configured later
-        from .llm import Summarizer
+        # Build model selection purely from CLI/env
         import os
+        from .llm import LLMClient
+        from .llm.model_factory import infer_provider_from_model
 
-        provider = os.environ.get("LOOPSTER_PROVIDER")
-        model = os.environ.get("LOOPSTER_MODEL")
+        model = getattr(args, "model", None) or os.environ.get("LOOPSTER_MODEL") or "gpt-4o-mini"
+        provider = infer_provider_from_model(model)
+
+        # Helpful API key checks
+        def _require_env(var: str, provider_label: str) -> bool:
+            if os.environ.get(var):
+                return True
+            print(
+                f"[loopster] summarize: missing API key for {provider_label}. "
+                f"Set {var} in your environment."
+            )
+            return False
+
+        prov_l = (provider or "").lower()
+        if prov_l in {"openai", "chatgpt", "gpt"}:
+            if not _require_env("OPENAI_API_KEY", "OpenAI"):
+                return 2
+        elif prov_l in {"google", "gemini"}:
+            if not _require_env("GOOGLE_API_KEY", "Google Gemini"):
+                return 2
+        elif prov_l == "fake":
+            pass  # no key required
+        else:
+            print(f"[loopster] summarize: could not infer provider from model: {model}")
+            return 2
+
+        # Use LLMClient
+        system_prompt = (
+            "You are Loopster, a CLI session summarizer.\n"
+            "Summarize the session log succinctly. Focus on:\n"
+            "- Commands executed and their intent\n"
+            "- Notable outputs, errors, and retries\n"
+            "- Configuration changes or suggestions\n"
+            "Write the summary in {format} format."
+        ).format(format=getattr(args, "format", "text"))
+
+        user_prompt = "Session log follows. Provide a concise summary."
+
         try:
-            if provider and model:
-                summarizer = Summarizer(provider=provider, model=model)
-            else:
-                # Defer model selection to provider defaults; this path will likely error
-                # if no env is configured, but we catch and report below.
-                summarizer = Summarizer(provider=provider or "openai", model=model or "gpt-4o-mini")
-            out_text = summarizer.summarize_text(log_text, output_format=getattr(args, "format", "text"))
+            client = LLMClient()  # use model-only inference path
+            out_text = client.ask(system_prompt=system_prompt, prompt=user_prompt, files=[Path(log_path)], model=model)
         except Exception as e:
             print(f"[loopster] summarize: LLM error: {e}")
             return 2
@@ -223,8 +254,16 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(out_text)
         return 0
-    if args.command == "config":
-        print("[loopster] config (stub)")
+    if args.command == "models":
+        from .llm.model_factory import OPENAI_MODELS, GEMINI_MODELS
+        print("OpenAI models:")
+        for m in OPENAI_MODELS:
+            print(f" - {m}")
+        print("\nGoogle Gemini models:")
+        for m in GEMINI_MODELS:
+            print(f" - {m}")
+        print("\nTesting/development:")
+        print(" - fake:<anything> (prints LOOPSTER_FAKE_RESPONSE or 'OK')")
         return 0
     if args.command == "sanitize":
         from .capture.ansi_clean import sanitize_ansi

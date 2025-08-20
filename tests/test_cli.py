@@ -20,7 +20,7 @@ def test_help_lists_commands():
     assert "capture" in out
     assert "analyze" in out
     assert "summarize" in out
-    assert "config" in out
+    assert "models" in out
 
 
 def test_version_flag():
@@ -30,7 +30,6 @@ def test_version_flag():
 
 
 def test_subcommands_exit_zero():
-    for sub in ["run", "capture", "analyze", "summarize", "config"]:
+    for sub in ["run", "capture", "analyze", "summarize", "models"]:
         code, _ = run_cli([sub])
         assert code == 0
-
