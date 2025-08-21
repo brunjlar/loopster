@@ -170,3 +170,21 @@ Convert a raw log (with ANSI/TUI control sequences) into a cleaned text file:
 - Minimal, surgical edits: Pass 2 proposes careful updates preserving the user’s intent and structure. Drastic changes are avoided unless the analysis shows severe, systemic failures.
 - Project‑agnostic output: The updated config avoids project details, encourages placeholders, and prevents secrets or local paths from leaking into your global prompt.
 - Safety by default: Apply is opt‑in, always shows a true diff (computed locally with Python’s `difflib`), and aborts if project‑specific content is detected.
+
+## Changelog
+
+### 1.0.0
+- Added `run` subcommand to perform capture → summarize → analyze in one command using a single model.
+- Hardened two‑pass analysis:
+  - Pass 1 compares LOG vs CONFIG with evidence and severity; can also flag independent critical failures (e.g., loops) even if not in CONFIG.
+  - Starts with explicit “Decision: NO‑CHANGE/CHANGE”, enabling a short‑circuit when no change is warranted.
+  - Pass 2 applies minimal, surgical edits; returns the original config unchanged on NO‑CHANGE.
+- Safety and UX improvements:
+  - Accurate unified diff via Python `difflib` (not LLM) with ANSI colorization; headers are clearly colored and spaced.
+  - Apply step blocks project‑specific content and requires confirmation unless `--yes` is set.
+  - Single model for summary and analysis, defaulting to `gpt-5` (can override via `--model` or `LOOPSTER_MODEL`).
+- Documentation:
+  - New “Quick Start”, “Getting Started”, and “Examples” sections.
+  - Commands section includes Run/Analyze/Summarize/Capture/Sanitize.
+- Tests:
+  - Added coverage for run flow (summary printing, NO‑CHANGE gate, apply success, apply abort on project‑specific content).

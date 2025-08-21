@@ -1,6 +1,6 @@
 [project]
 name = "loopster"
-version = "0.0.0"
+version = "1.0.0"
 description = "Unified CLI to capture, analyze, and summarize AI assistant sessions"
 requires-python = ">=3.11"
 readme = "README.md"
