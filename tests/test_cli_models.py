@@ -16,6 +16,7 @@ def test_models_lists_known_items():
     assert code == 0
     assert "OpenAI models:" in out
     assert "gpt-4o-mini" in out
+    assert "o4-mini" in out
     assert "gpt-5" in out
     assert "Google Gemini models:" in out
     assert "gemini-1.5-flash" in out

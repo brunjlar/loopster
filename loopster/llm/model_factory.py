@@ -5,23 +5,32 @@ from typing import Optional, Tuple
 from langchain_core.language_models.chat_models import BaseChatModel
 
 
-# Curated list of commonly used models; not exhaustive.
+# Curated list of text/chat-suitable models; not exhaustive.
+# Excludes realtime, audio, and pure vision variants to avoid unsuitable modes for CLI text analysis.
 OPENAI_MODELS = [
-    # GPT-4o family
-    "gpt-4o", "gpt-4o-mini", "gpt-4o-realtime-preview", "gpt-4o-audio-preview",
-    # Legacy/compat
-    "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo",
-    # o-series (reasoning)
-    "o3", "o3-mini", "o4-mini",
+    # 4o family (text/chat)
+    "gpt-4o",
+    "gpt-4o-mini",
     # Next-gen
     "gpt-5",
+    # o-series (reasoning-capable chat)
+    "o4-mini",
+    "o3",
+    "o3-mini",
+    # Legacy/compat still widely available in Chat API
+    "gpt-4-turbo",
+    "gpt-4",
+    "gpt-3.5-turbo",
 ]
 
 GEMINI_MODELS = [
-    "gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-flash-8b",
-    "gemini-1.0-pro", "gemini-1.0-pro-vision",
-    # Next-gen
+    # Recommended general chat models
     "gemini-2.5-pro",
+    "gemini-1.5-pro",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    # Optional: fast text/chat
+    "gemini-2.0-flash",
 ]
 
 
@@ -46,11 +55,12 @@ def get_chat_model(provider: str, model: str) -> BaseChatModel:
     if prov in {"openai", "chatgpt", "gpt"}:
         from langchain_openai import ChatOpenAI
 
-        return ChatOpenAI(model=model)
+        # Lower temperature for more deterministic, conservative outputs
+        return ChatOpenAI(model=model, temperature=0.2)
     if prov in {"google", "gemini"}:
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        return ChatGoogleGenerativeAI(model=model)
+        return ChatGoogleGenerativeAI(model=model, temperature=0.2)
     if prov in {"fake"}:
         from langchain_core.language_models.fake import FakeListLLM
 
